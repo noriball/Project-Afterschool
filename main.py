@@ -2,6 +2,8 @@ import os
 import datetime
 import google.generativeai as genai
 
+JST = datetime.timezone(datetime.timedelta(hours=9))
+
 def main():
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -16,7 +18,7 @@ def main():
     output_dir = "archives"
     os.makedirs(output_dir, exist_ok=True)
     
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    current_time = datetime.datetime.now(JST).strftime("%Y-%m-%d_%H-%M-%S")
     file_path = os.path.join(output_dir, f"archive_{current_time}.md")
 
     with open(file_path, "w", encoding="utf-8") as f:
