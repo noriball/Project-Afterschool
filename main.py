@@ -28,6 +28,16 @@ def generate_archive_content(model):
     response = model.generate_content(prompt)
     return response.text
 
+def build_disclaimer(generated_at):
+    """
+    創作である旨の注記。モデルに書かせると省略・脚色されるため、コード側で前置する。
+    """
+    return (
+        "> この記事は Gemini により生成された創作です。登場する人物・出来事はすべて架空であり、\n"
+        "> 実在の対話や統計に基づくものではありません。\n"
+        f"> 生成日時: {generated_at.strftime('%Y-%m-%d %H:%M')} JST\n"
+    )
+
 def main():
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -45,11 +55,11 @@ def main():
         os.makedirs(output_dir, exist_ok=True)
         
         # ファイル名は日付ベース（例: 2026-07-16.md）
-        current_date = datetime.datetime.now(JST).strftime("%Y-%m-%d")
-        file_path = os.path.join(output_dir, f"{current_date}.md")
+        generated_at = datetime.datetime.now(JST)
+        file_path = os.path.join(output_dir, f"{generated_at.strftime('%Y-%m-%d')}.md")
 
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+            f.write(build_disclaimer(generated_at) + "\n" + content)
             
         print(f"Successfully generated: {file_path}")
         
