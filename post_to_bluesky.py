@@ -39,9 +39,9 @@ def extract_excerpt(markdown, limit):
     return ""
 
 
-def build_post_text(markdown, filename):
+def build_post_text(markdown, filename, edition):
     url = f"{REPO_URL}/{filename}"
-    title = f"『放課後のAI』{filename[:10]} 号"
+    title = f"『放課後のAI』{filename[:10]}-{edition} 号"
     # 抜粋以外は長さが決まっているので、残った分だけを抜粋に充てる
     fixed = f"{title}\n\n\n\n全文 → {url}\n\n{CREDIT}"
     excerpt = extract_excerpt(markdown, POST_LIMIT - len(fixed))
@@ -77,11 +77,12 @@ def main():
         print(f"No archive for today ({date_str}); nothing to post.")
         return
 
+    # 当日ファイルは時刻順に並ぶので、その本数がそのまま何号目かになる
     path = todays[-1]
     with open(path, encoding="utf-8") as f:
         markdown = f.read()
 
-    text, url = build_post_text(markdown, os.path.basename(path))
+    text, url = build_post_text(markdown, os.path.basename(path), len(todays))
 
     session = api_post(
         "com.atproto.server.createSession",
