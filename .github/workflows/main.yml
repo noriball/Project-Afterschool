@@ -1,6 +1,11 @@
 name: Generate Archive
 on:
   workflow_dispatch:
+    inputs:
+      post:
+        description: 'Bluesky に投稿する（トーン確認だけなら false）'
+        type: boolean
+        default: true
   schedule:
     # JST の朝・昼・夜。朝の号は UTC では前日に走るので、日付は必ず JST で採る。
     # 分が 0/15/30/45 だと世界中の cron と競合して数時間遅れるため、半端な分に逃がしてある。
@@ -42,6 +47,7 @@ jobs:
 
       # 投稿の失敗でアーカイブまで巻き添えにしないよう、コミット後に独立させる
       - name: Post to Bluesky
+        if: ${{ github.event_name == 'schedule' || inputs.post }}
         continue-on-error: true
         env:
           BLUESKY_IDENTIFIER: ${{ secrets.BLUESKY_IDENTIFIER }}
