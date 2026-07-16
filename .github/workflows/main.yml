@@ -36,3 +36,11 @@ jobs:
           git add archives/
           git commit -m "chore: add generated archive" || echo "No changes to commit"
           git push
+
+      # 投稿の失敗でアーカイブまで巻き添えにしないよう、コミット後に独立させる
+      - name: Post to Bluesky
+        continue-on-error: true
+        env:
+          BLUESKY_IDENTIFIER: ${{ secrets.BLUESKY_IDENTIFIER }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        run: python post_to_bluesky.py
