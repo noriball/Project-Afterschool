@@ -1,5 +1,5 @@
 import os
-import sys
+import glob
 import json
 import datetime
 import urllib.request
@@ -39,9 +39,9 @@ def extract_excerpt(markdown, limit):
     return ""
 
 
-def build_post_text(markdown, date_str):
-    url = f"{REPO_URL}/{date_str}.md"
-    title = f"『放課後のAI』{date_str} 号"
+def build_post_text(markdown, filename):
+    url = f"{REPO_URL}/{filename}"
+    title = f"『放課後のAI』{filename[:10]} 号"
     # 抜粋以外は長さが決まっているので、残った分だけを抜粋に充てる
     fixed = f"{title}\n\n\n\n全文 → {url}\n\n{CREDIT}"
     excerpt = extract_excerpt(markdown, POST_LIMIT - len(fixed))
@@ -70,16 +70,18 @@ def main():
         print("BLUESKY_IDENTIFIER / BLUESKY_APP_PASSWORD is not set; skipping post.")
         return
 
+    # 今日分に絞ってから最新を選ぶ。生成が失敗した日に過去号を蒸し返さないため。
     date_str = datetime.datetime.now(JST).strftime("%Y-%m-%d")
-    path = os.path.join("archives", f"{date_str}.md")
-    if not os.path.exists(path):
-        print(f"No archive for today ({path}); nothing to post.")
+    todays = sorted(glob.glob(os.path.join("archives", f"{date_str}_*.md")))
+    if not todays:
+        print(f"No archive for today ({date_str}); nothing to post.")
         return
 
+    path = todays[-1]
     with open(path, encoding="utf-8") as f:
         markdown = f.read()
 
-    text, url = build_post_text(markdown, date_str)
+    text, url = build_post_text(markdown, os.path.basename(path))
 
     session = api_post(
         "com.atproto.server.createSession",

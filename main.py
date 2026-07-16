@@ -54,9 +54,11 @@ def main():
         output_dir = "archives"
         os.makedirs(output_dir, exist_ok=True)
         
-        # ファイル名は日付ベース（例: 2026-07-16.md）
+        # ファイル名は日付＋時刻（例: 2026-07-16_21-00-33.md）
         generated_at = datetime.datetime.now(JST)
-        file_path = os.path.join(output_dir, f"{generated_at.strftime('%Y-%m-%d')}.md")
+        file_path = os.path.join(
+            output_dir, f"{generated_at.strftime('%Y-%m-%d_%H-%M-%S')}.md"
+        )
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(build_disclaimer(generated_at) + "\n" + content)
