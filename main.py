@@ -10,7 +10,7 @@ def main():
         raise ValueError("GEMINI_API_KEY is not set in environment variables.")
     
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-flash-latest')
     
     prompt = "テスト稼働です。現在の状況について、論理的かつ簡潔に1行で述べてください。"
     response = model.generate_content(prompt)
