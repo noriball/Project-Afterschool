@@ -1,0 +1,14 @@
+name: List Models (temporary)
+on:
+  workflow_dispatch:
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: List available models
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}&pageSize=100" \
+            | python3 -c "import json,sys; [print(m['name'], '|', ','.join(m.get('supportedGenerationMethods', []))) for m in json.load(sys.stdin).get('models', [])]"
