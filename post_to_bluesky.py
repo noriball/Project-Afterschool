@@ -8,8 +8,8 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 API = "https://bsky.social/xrpc"
 REPO_URL = "https://github.com/noriball/Project-Afterschool/blob/main/archives"
 
-# 投稿文にも必ず残す。リンクを踏まない読者には、これが唯一の手がかりになる。
-CREDIT = "#放課後のAI ｜ AIによる創作です"
+# 「たぶん」は演出。断定した注記はリンク先の本文冒頭に必ず入るので、そちらが答え合わせになる。
+CREDIT = "#放課後のAI ｜ たぶんAIによる創作です"
 POST_LIMIT = 300
 
 
