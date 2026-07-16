@@ -2,8 +2,10 @@ name: Generate Archive
 on:
   workflow_dispatch:
   schedule:
-    # 毎日 21:00 JST (12:00 UTC)
-    - cron: '0 12 * * *'
+    # JST の朝・昼・夜。朝の号は UTC では前日に走るので、日付は必ず JST で採る。
+    - cron: '0 23 * * *'  # 08:00 JST
+    - cron: '0 3 * * *'   # 12:00 JST
+    - cron: '0 12 * * *'  # 21:00 JST
 
 jobs:
   build:
