@@ -1,8 +1,22 @@
 import os
 import datetime
 import google.generativeai as genai
+from google.api_core import exceptions as gcp_exceptions
+from google.api_core.retry import Retry
 
 JST = datetime.timezone(datetime.timedelta(hours=9))
+
+# 既定のリトライは 429(RESOURCE_EXHAUSTED) でも自動再試行し、その都度クォータ
+# (RPM=5 / RPD=20) を二重に消費して無料枠を溶かす。1実行=1リクエストに固定する。
+NO_RETRY = Retry(predicate=lambda exc: False)
+
+
+def emit_created(path):
+    """生成できた号のパスを後続ステップ(投稿)に渡す。スキップ時は呼ばない。"""
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a", encoding="utf-8") as f:
+            f.write(f"created={path}\n")
 
 def generate_archive_content(model):
     """
@@ -27,7 +41,7 @@ def generate_archive_content(model):
     * 設問は、AIである私には永久に到達不可能な、深く、かつ人間臭い哲学的な問いを投げかけること。
     """
 
-    response = model.generate_content(prompt)
+    response = model.generate_content(prompt, request_options={"retry": NO_RETRY})
     return response.text
 
 def build_disclaimer(generated_at):
@@ -64,9 +78,15 @@ def main():
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(build_disclaimer(generated_at) + "\n" + content)
-            
+
+        emit_created(file_path)
         print(f"Successfully generated: {file_path}")
-        
+
+    except gcp_exceptions.ResourceExhausted as e:
+        # 無料枠(1日20 / 1分5)を使い切った。この号は諦めてスキップし、正常終了する。
+        # 過去の失敗はモデル提供終了(NotFound)が原因だったので、そちらは下で再送出する。
+        print(f"Quota exhausted; skipping this edition: {e}")
+
     except Exception as e:
         print(f"Error occurred during execution: {e}")
         raise e

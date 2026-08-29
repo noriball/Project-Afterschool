@@ -7,14 +7,12 @@ on:
         type: boolean
         default: true
   schedule:
-    # JST 7時〜23時に約3時間おき。朝の号は UTC では前日に走るので、日付は必ず JST で採る。
+    # JST 7時〜23時に約5時間おきで4回。朝の号は UTC では前日に走るので、日付は必ず JST で採る。
     # 分が 0/15/30/45 だと世界中の cron と競合して数時間遅れるため、半端な分に散らしてある。
-    - cron: '13 22 * * *'  # 07:13 JST
-    - cron: '27 1 * * *'   # 10:27 JST
-    - cron: '41 4 * * *'   # 13:41 JST
-    - cron: '53 7 * * *'   # 16:53 JST
-    - cron: '37 10 * * *'  # 19:37 JST
-    - cron: '19 13 * * *'  # 22:19 JST
+    - cron: '11 22 * * *'  # 07:11 JST
+    - cron: '29 3 * * *'   # 12:29 JST
+    - cron: '47 8 * * *'   # 17:47 JST
+    - cron: '23 13 * * *'  # 22:23 JST
 
 jobs:
   build:
@@ -36,6 +34,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Archive Generator
+        id: generate
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py
@@ -48,9 +47,10 @@ jobs:
           git commit -m "chore: add generated archive" || echo "No changes to commit"
           git push
 
-      # 投稿の失敗でアーカイブまで巻き添えにしないよう、コミット後に独立させる
+      # 投稿の失敗でアーカイブまで巻き添えにしないよう、コミット後に独立させる。
+      # クォータ超過で号が生成されなかった時は created が空になり、過去号の再投稿を防ぐ。
       - name: Post to Bluesky
-        if: ${{ github.event_name == 'schedule' || inputs.post }}
+        if: ${{ (github.event_name == 'schedule' || inputs.post) && steps.generate.outputs.created != '' }}
         continue-on-error: true
         env:
           BLUESKY_IDENTIFIER: ${{ secrets.BLUESKY_IDENTIFIER }}
